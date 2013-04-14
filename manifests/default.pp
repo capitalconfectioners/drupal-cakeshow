@@ -7,6 +7,10 @@ class packages {
     ensure => present
   }
 
+  package { 'php5-gd':
+    ensure => present
+  }
+
   package { 'drush':
     ensure => present
   }
@@ -27,10 +31,51 @@ class { 'mysql::server':
 
 mysql::db { 'cakecuba_capitalc':
   user => 'cakecuba_capc',
-  password => '',
+  password => 'passw0rd',
   host => 'localhost',
   grant => ['all'],
   require => Class['mysql::server']
 }
 
+database_grant { 'cakecuba_capc@localhost':
+  privileges => ['all'],
+  require => Mysql::Db['cakecuba_capitalc']
+}
 
+file { '/home/vagrant/public_html':
+  ensure => link,
+  target => '/var/www',
+  require => Class['packages']
+}
+
+exec { '/usr/sbin/a2enmod rewrite':
+  unless => '/bin/bash [ -f /etc/apache2/mods-enabled/rewrite.load ]',
+  before => Exec['apache_restart'],
+  require => Class['packages']
+}
+
+exec { 'apache_restart':
+  command => '/usr/bin/service apache2 restart'
+}
+
+$htaccess = "
+<Directory /var/www/capitalconfectioners>
+  Options FollowSymLinks
+  RewriteEngine on
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ /capitalconfectioners/index.php [L,QSA]
+</Directory>
+"
+
+file { '/etc/apache2/httpd.conf':
+  content => $htaccess,
+  mode => 'a+r',
+  require => Class['packages']
+}
+
+exec { 'drupal_setup.sh':
+  command => '/vagrant/drupal_setup.sh /home/vagrant/public_html passw0rd',
+  logoutput => true,
+  require => [Mysql::Db['cakecuba_capitalc'], File['/home/vagrant/public_html']]
+}
