@@ -2,7 +2,12 @@
 
 INSTALL_ROOT=$1
 
-ANSWER=--yes
+if [ -t 0 ]
+then
+    ANSWER=
+else
+    ANSWER=--yes
+fi
 
 if [ $# -lt "2" ]
 then
