@@ -31,21 +31,44 @@ drupal_installed() {
     fi
 }
 
+download_modules() {
+    TO_INSTALL=""
+
+    for module in "$@"
+    do
+	if ! [ -d sites/all/modules/${module} ]
+	then
+	    if [ -z "$TO_INSTALL" ]
+	    then
+		TO_INSTALL="$module"
+	    else
+		TO_INSTALL="${TO_INSTALL},${module}"
+	    fi
+	fi
+    done
+
+    if [ -n "$TO_INSTALL" ]
+    then
+	echo "Downloading modules: ${TO_INSTALL}"
+	drush ${ANSWER} dl ${TO_INSTALL} || exit
+    fi
+}
+
 install_modules() {
     TO_INSTALL=()
     for module in "$@"
     do
-	echo "(${module})"
-	if drush pm-list --status="not installed" | grep -q "(${module})"
+	if drush pm-list --status="not installed,disabled" | grep -q "(${module})"
 	then
-	    echo "${module} not installed"
 	    TO_INSTALL=( ${TO_INSTALL[@]} $module )
 	fi
     done
 
-    echo ${TO_INSTALL[@]}
-
-    drush ${ANSWER} en ${TO_INSTALL[@]} || exit 1
+    if [ -n "$TO_INSTALL" ]
+    then
+	echo "Installing modules: ${TO_INSTALL[@]}"
+	drush ${ANSWER} en ${TO_INSTALL[@]} || exit 1
+    fi
 }
 
 echo "Checking for drupal"
@@ -63,7 +86,7 @@ fi
 
 cd ${INSTALL_DIR}
 
-if ! drush status | grep -q "Drupal boostrap"
+if ! drush status | grep -q "Drupal bootstrap"
 then
     echo "Installing Cakeshow site"
     drush site-install standard ${ANSWER} --db-url=mysql://cakecuba_capc:${PASSWORD}@localhost/cakecuba_capitalc --site-name=CapitalConfectioners --account-name=admin --account-pass=${PASSWORD} || {
@@ -74,7 +97,7 @@ else
     echo "Cakeshow site already installed"
 fi
 
-drush ${ANSWER} dl libraries,ctools,views,addressfield,rules,entity,commerce,commerce_stripe,commerce_extra_panes || exit 1
+download_modules libraries ctools views addressfield rules entity commerce commerce_stripe commerce_extra_panes
 
 install_modules commerce commerce_ui
 install_modules commerce_customer commerce_customer_ui
