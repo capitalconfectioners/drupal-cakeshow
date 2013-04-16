@@ -1,6 +1,7 @@
 class packages {
   package { 'apache2':
-    ensure => present
+    ensure => present,
+    require => Package['php5']
   }
 
   package { 'php5':
@@ -8,11 +9,13 @@ class packages {
   }
 
   package { 'php5-gd':
-    ensure => present
+    ensure => present,
+    require => Package['php5']
   }
 
   package { 'drush':
-    ensure => present
+    ensure => present,
+    require => Package['php5']
   }
 }
 
@@ -61,10 +64,11 @@ exec { 'apache_restart':
 $htaccess = "
 <Directory /var/www/capitalconfectioners>
   Options FollowSymLinks
+  RewriteBase /
   RewriteEngine on
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(.*)$ /capitalconfectioners/index.php [L,QSA]
+  RewriteRule ^(.*)$ /index.php [L,QSA]
 </Directory>
 "
 
