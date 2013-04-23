@@ -62,13 +62,15 @@ exec { 'apache_restart':
 }
 
 $htaccess = "
+DocumentRoot /var/www
+
 <Directory /var/www/capitalconfectioners>
   Options FollowSymLinks
-  RewriteBase /
+  RewriteBase /capitalconfectioners/
   RewriteEngine on
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(.*)$ /index.php [L,QSA]
+  RewriteRule ^(.*)$ index.php [L,QSA]
 </Directory>
 "
 
