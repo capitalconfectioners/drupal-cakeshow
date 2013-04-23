@@ -85,3 +85,9 @@ exec { 'drupal_setup.sh':
   logoutput => true,
   require => [Mysql::Db['cakecuba_capitalc'], File['/home/vagrant/public_html']]
 }
+
+file { '/var/www/capitalconfectioners/sites/default/files':
+  ensure => directory,
+  mode => 'a+w',
+  require => Exec['drupal_setup.sh']
+}
