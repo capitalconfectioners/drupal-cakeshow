@@ -97,6 +97,19 @@ else
     echo "Cakeshow site already installed"
 fi
 
+if ! [ -d sites/all/libraries/stripe-php ]
+then
+    echo "Installing Stripe PHP library"
+
+    mkdir -p sites/all/libraries
+
+    wget -nc https://code.stripe.com/stripe-php-1.7.15.tar.gz || exit 1
+    tar xzvf stripe-php-1.7.15.tar.gz || exit 1
+    mv stripe-php-1.7.15 sites/all/libraries/stripe-php || exit 1
+else
+    echo "Stripe PHP already installed"
+fi
+
 download_modules libraries ctools views addressfield rules entity commerce commerce_stripe commerce_extra_panes
 
 install_modules commerce commerce_ui
