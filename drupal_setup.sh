@@ -110,8 +110,24 @@ else
     echo "Stripe PHP already installed"
 fi
 
-download_modules libraries ctools views addressfield rules entity commerce commerce_stripe commerce_extra_panes
+if ! [ -f sites/all/libraries/chosen/chosen/chosen.jquery.js ]
+then
+    echo "Installing Chosen jQuery plugin"
 
+    mkdir -p sites/all/libraries
+
+    wget -nc https://github.com/harvesthq/chosen/archive/v0.9.13.zip || exit 1
+    unzip v0.9.13.zip -d sites/all/libraries || exit 1
+    mv sites/all/libraries/chosen-0.9.13 sites/all/libraries/chosen || exit 1
+else
+    echo "Chosen jQuery plugin already installed"
+fi
+
+download_modules libraries ctools views addressfield rules entity commerce commerce_stripe commerce_extra_panes inline_entity_form views_megarow views_bulk_operations eva commerce_backoffice chosen shiny
+
+# These are the core Drupal Commerce modules; their documentation
+# recommends breaking up their installation into these chunks, to aid
+# debugging installation failures
 install_modules commerce commerce_ui
 install_modules commerce_customer commerce_customer_ui
 install_modules commerce_price
@@ -121,5 +137,13 @@ install_modules commerce_checkout commerce_payment commerce_product
 install_modules commerce_cart commerce_product_pricing
 install_modules commerce_product_ui
 install_modules commerce_tax_ui
+
+# Extra modules
 install_modules commerce_stripe
 install_modules commerce_extra_panes
+install_modules inline_entity_form views_megarow views_bulk_operations eva
+install_modules commerce_backoffice_product commerce_backoffice_order commerce_backoffice_content
+install_modules chosen
+
+# Actually an admin theme
+install_modules shiny

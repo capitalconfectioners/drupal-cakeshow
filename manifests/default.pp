@@ -1,4 +1,8 @@
 class packages {
+  package { 'unzip':
+    ensure => present
+  }
+  
   package { 'apache2':
     ensure => present,
     require => Package['php5']
