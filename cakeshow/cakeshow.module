@@ -1,0 +1,31 @@
+<?php
+
+function cakeshow_help($path, $arg) {
+    switch ($path) {
+        case "admin/help#cakeshow":
+            return '<p>' .
+                t("Manages all the custom features for the cakeshow") . '</p>';
+            break;
+    }
+}
+
+function cakeshow_commerce_payment_method_info() {
+    $payment_methods = array();
+
+    $payment_methods['cakeshow'] = array(
+        'title' => 'Cakeshow Subscription Billing',
+        'description' => t('Subscription Billing for Cakeshow Attendees'),
+        'active' => FALSE,
+        'terminal' => FALSE,
+        'offsite' => FALSE,
+        'callbacks' => array()
+    );
+
+    return $payment_methods;
+}
+
+function cakeshow_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
+    module_load_include('module', 'commerce_stripe');
+    
+    return commerce_stripe_submit_form($payment_method, $pane_values, $checkout_pane, $order);
+}

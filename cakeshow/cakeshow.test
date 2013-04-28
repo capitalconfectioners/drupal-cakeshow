@@ -1,0 +1,76 @@
+<?php
+
+// Mocks for the Stripe library
+class Stripe_Plan {
+    public static $created = array();
+    
+    public static function create($params) {
+        self::$created[] = $params;
+    }
+}
+
+class TestSubscriptionCheckouts extends CommerceBaseTestCase {
+    public static function getInfo() {
+        return array(
+            'name' => 'Subscription Checkouts UI Tests',
+            'description' => 'Check for creating custom subscriptions on checkout',
+            'group' => 'Cakeshow',
+        );
+    }
+
+    public function setUp() {
+        $this->profile = 'testing';
+        
+        $modules = parent::setUpHelper('all');
+        parent::setUp($modules);
+
+        $this->customer = $this->createStoreCustomer();
+
+        $this->product1 = $this->createDummyProduct('Product1', 'Product 1', 20, 'USD');
+
+        // The rule that sends a mail after checkout completion should
+        //  be disabled as it returns an error caused by how mail
+        //  messages are stored.
+        $rules_config = rules_config_load('commerce_checkout_order_email');
+        $rules_config->active = FALSE;
+        $rules_config->save();
+
+        Stripe_Plan::$created = array();
+    }
+
+    protected function createOrderAndGoToPayment($products) {
+        $this->drupalLogin($this->customer);
+
+        $this->order = $this->createDummyOrder(
+            $this->customer->uid,
+            $products);
+
+        $this->drupalGet($this->getCommerceUrl('checkout'));
+
+        $address_info = $this->generateAddressInformation();
+
+        $billing_pane = $this->xpath(
+            "//select[starts-with(@name, " .
+            "'customer_profile_billing[commerce_customer_address]')]");
+
+        $this->drupalPostAJAX(
+            NULL,
+            array((string) $billing_pane[0]['name'] => 'US'),
+            (string) $billing_pane[0]['name']);
+
+        $info = array(
+            'customer_profile_billing[commerce_customer_address][und][0][name_line]' => $address_info['name_line'],
+            'customer_profile_billing[commerce_customer_address][und][0][thoroughfare]' => $address_info['thoroughfare'],
+            'customer_profile_billing[commerce_customer_address][und][0][locality]' => $address_info['locality'],
+            'customer_profile_billing[commerce_customer_address][und][0][administrative_area]' => $address_info['administrative_area'],
+            'customer_profile_billing[commerce_customer_address][und][0][postal_code]' => $address_info['postal_code'],
+        );
+        $this->drupalPost(NULL, $info, t('Continue to next step'));
+    }
+
+    public function testShowsSubmissionForm() {
+        $this->createOrderAndGoToPayment(array($this->product1));
+
+        $this->assertFieldById('credit_card');
+    }
+}

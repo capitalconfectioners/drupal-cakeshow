@@ -1,0 +1,4 @@
+name = Cakeshow
+description = Module for all the custom logic for the Cakeshow
+core = 7.x
+files[] = cakeshow.test
