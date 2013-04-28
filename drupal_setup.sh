@@ -134,6 +134,7 @@ install_modules commerce_price
 install_modules commerce_line_item commerce_line_item_ui
 install_modules commerce_order commerce_order_ui
 install_modules commerce_checkout commerce_payment commerce_product
+install_modules commerce_payment_ui
 install_modules commerce_cart commerce_product_pricing
 install_modules commerce_product_ui
 install_modules commerce_tax_ui
