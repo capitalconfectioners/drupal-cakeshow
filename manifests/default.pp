@@ -21,6 +21,11 @@ class packages {
     ensure => present,
     require => Package['php5']
   }
+
+  package { 'php5-curl':
+    ensure => present,
+    require => Package['php5']
+  }
 }
 
 exec { 'apt-update':
@@ -68,6 +73,8 @@ exec { 'apache_restart':
 $htaccess = "
 DocumentRoot /var/www
 
+Listen 8080
+
 <Directory /var/www/capitalconfectioners>
   Options FollowSymLinks
   RewriteBase /capitalconfectioners/
@@ -93,5 +100,12 @@ exec { 'drupal_setup.sh':
 file { '/var/www/capitalconfectioners/sites/default/files':
   ensure => directory,
   mode => 'a+w',
+  recurse => true,
+  require => Exec['drupal_setup.sh']
+}
+
+file { '/var/www/capitalconfectioners/sites/all/modules/cakeshow':
+  ensure => link,
+  target => '/vagrant/cakeshow',
   require => Exec['drupal_setup.sh']
 }
