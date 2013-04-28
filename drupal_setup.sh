@@ -116,8 +116,8 @@ then
 
     mkdir -p sites/all/libraries
 
-    wget -nc https://github.com/harvesthq/chosen/archive/v0.9.13.zip || exit 1
-    unzip v0.9.13.zip -d sites/all/libraries || exit 1
+    wget -nc https://github.com/harvesthq/chosen/archive/v0.9.13.zip -O chosen-v0.9.13.zip || exit 1
+    unzip chosen-v0.9.13.zip -d sites/all/libraries || exit 1
     mv sites/all/libraries/chosen-0.9.13 sites/all/libraries/chosen || exit 1
 else
     echo "Chosen jQuery plugin already installed"
