@@ -19,9 +19,8 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     }
 
     public function setUp() {
-        $this->profile = 'testing';
-        
         $modules = parent::setUpHelper('all');
+        $modules[] = 'cakeshow';
         parent::setUp($modules);
 
         $this->customer = $this->createStoreCustomer();
@@ -35,6 +34,10 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         $rules_config->active = FALSE;
         $rules_config->save();
 
+        $cakeshow_rule = rules_config_load('commerce_payment_cakeshow');
+        $cakeshow_rule->active = TRUE;
+        $cakeshow_rule->save();
+        
         Stripe_Plan::$created = array();
     }
 
@@ -69,7 +72,7 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     }
 
     public function testShowsSubmissionForm() {
-        $this->createOrderAndGoToPayment(array($this->product1));
+        $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
         $this->assertFieldById('credit_card');
     }
