@@ -74,6 +74,6 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     public function testShowsSubmissionForm() {
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
-        $this->assertFieldById('credit_card');
+        $this->assertFieldByName('commerce_payment[payment_details][credit_card][number]');
     }
 }
