@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * You must manually enable this in the menu list, for some reason
+ * (even though the test itself enables the module).
+ */
+
+function mock_stripe_menu() {
+    watchdog('mock_stripe', 'menu hook');
+
+    $routes = array();
+
+    $routes['mock_stripe/v1/charges'] = array(
+        'page callback' => 'mock_stripe_new_charge',
+        'access callback' => TRUE,
+        'delivery callback' => 'drupal_json_output',
+        'type' => MENU_CALLBACK
+    );
+
+    return $routes;
+}
+
+function mock_stripe_new_charge() {
+    $amount = $_POST['amount'];
+    $curency = $_POST['currency'];
+    $card_tok = $_POST['card_tok'];
+
+    watchdog(
+        'mock_stripe',
+        'new charge request: @amount @currency @card_tok',
+        array(
+            'amount' => $amount,
+            'currency' => $currency,
+            'card_tok' => $card_tok
+        )
+    );
+    
+    $result = array(
+        'type' => 'api_error',
+        'message' => 'A test message',
+    );
+
+    drupal_add_http_header('Status', '500');
+
+    return $result;
+}

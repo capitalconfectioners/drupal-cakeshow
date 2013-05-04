@@ -1,14 +1,5 @@
 <?php
 
-// Mocks for the Stripe library
-class Stripe_Plan {
-    public static $created = array();
-    
-    public static function create($params) {
-        self::$created[] = $params;
-    }
-}
-
 class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     public static function getInfo() {
         return array(
@@ -19,13 +10,26 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     }
 
     public function setUp() {
+        // Force the menu cache to be cleared, so changes to the mock
+        // stripe module's routes are taken into account.
+        menu_cache_clear_all();
+
+        watchdog('cakeshow', 'in_setup');
+        global $base_url;
+        require_once libraries_get_path('stripe-php') . '/lib/Stripe.php';
+
+        Stripe::$apiBase = $base_url . '/mock_stripe';
+        
         $modules = parent::setUpHelper('all');
         $modules[] = 'cakeshow';
+        $modules[] = 'mock_stripe';
         parent::setUp($modules);
+
+        menu_rebuild();
 
         $this->customer = $this->createStoreCustomer();
 
-        $this->product1 = $this->createDummyProduct('Product1', 'Product 1', 20, 'USD');
+        $this->product1 = $this->createDummyProduct('Product1', 'Product 1', 2000, 'USD');
 
         // The rule that sends a mail after checkout completion should
         //  be disabled as it returns an error caused by how mail
@@ -37,8 +41,6 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         $cakeshow_rule = rules_config_load('commerce_payment_cakeshow');
         $cakeshow_rule->active = TRUE;
         $cakeshow_rule->save();
-        
-        Stripe_Plan::$created = array();
     }
 
     protected function createOrderAndGoToPayment($products) {
@@ -75,5 +77,14 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
         $this->assertFieldByName('commerce_payment[payment_details][credit_card][number]');
+    }
+
+    public function testSubmitsPartialPaymentAndCreatesSubscription() {
+        $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
+
+        //$this->drupalPost(NULL, array('stripeToken' => 'asdf'), t('Continue to next step'));
+
+        Stripe::setApiKey('asdf');
+        Stripe_Charge::create(array());
     }
 }

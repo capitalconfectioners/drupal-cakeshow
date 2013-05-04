@@ -1,0 +1,4 @@
+name = Mock Stripe
+description = Provides a mock implementation of the Stripe API, for testing
+core = 7.x
+dependencies[] = simpletest
