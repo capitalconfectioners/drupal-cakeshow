@@ -1,12 +1,27 @@
 <?php
-
 /**
  * You must manually enable this in the menu list, for some reason
  * (even though the test itself enables the module).
  */
 
+require_once drupal_get_path('module', 'simpletest') . '/drupal_web_test_case.php';
+
+class MockStripe {
+    public static $charges = array();
+
+    public function add_charge($charge) {
+        self::$charges[] = $charge;
+        variable_set('mock_stripe_charges', self::$charges);
+    }
+
+    public function print_charges() {
+        self::$charges = variable_get('mock_stripe_charges');
+        debug(self::$charges, 'all charges');
+    }
+}
+
 function mock_stripe_menu() {
-    watchdog('mock_stripe', 'menu hook');
+    debug('mock_stripe', 'menu hook');
 
     $routes = array();
 
@@ -22,25 +37,70 @@ function mock_stripe_menu() {
 
 function mock_stripe_new_charge() {
     $amount = $_POST['amount'];
-    $curency = $_POST['currency'];
-    $card_tok = $_POST['card_tok'];
+    $currency = $_POST['currency'];
+    $card = $_POST['card'];
 
-    watchdog(
-        'mock_stripe',
-        'new charge request: @amount @currency @card_tok',
-        array(
-            'amount' => $amount,
-            'currency' => $currency,
-            'card_tok' => $card_tok
-        )
+    $charge = array(
+        'amount' => $amount,
+        'currency' => $currency,
+        'card' => $card
     );
+
+    simpletest_verbose(
+        print_r($charge, TRUE) . ' new charge request'
+    );
+
+    MockStripe::add_charge($charge);
+
+    debug(MockStripe::$charges, 'new all charges');
     
     $result = array(
-        'type' => 'api_error',
-        'message' => 'A test message',
+        "id" => "ch_1lT890FuPdj9xX",
+        "object" => "charge",
+        "created" => 1367637544,
+        "livemode" => false,
+        "paid" => true,
+        "amount" => 12500,
+        "currency" => "usd",
+        "refunded" => false,
+        "fee" => 393,
+        "fee_details" => array(
+            array(
+                "amount" => 393,
+                "currency" => $currency,
+                "type" => "stripe_fee",
+                "description" => "Stripe processing fees",
+                "application" => null,
+                "amount_refunded_refunded" => 0
+            )
+        ),
+        "card" => array(
+            "object" => "card",
+            "last4" => "4242",
+            "type" => "Visa",
+            "exp_month" => 5,
+            "exp_year" => 2013,
+            "fingerprint" => "rYy7SbfzoN030SaO",
+            "country" => "US",
+            "name" => "A User",
+            "address_line1" => null,
+            "address_line2" => null,
+            "address_city" => null,
+            "address_state" => null,
+            "address_zip" => null,
+            "address_country" => null,
+            "cvc_check" => "pass",
+            "address_line1_check" => null,
+            "address_zip_check" => null
+        ),
+        "captured" => true,
+        "failure_message" => null,
+        "amount_refunded" => 0,
+        "customer" => null,
+        "invoice" => null,
+        "description" => "Order Number: 3",
+        "dispute" => null
     );
-
-    drupal_add_http_header('Status', '500');
 
     return $result;
 }
