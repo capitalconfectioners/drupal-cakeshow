@@ -91,16 +91,15 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     public function testSubmitsPartialPaymentAndCreatesSubscription() {
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
-        //$this->drupalPost(NULL, array('stripeToken' => 'asdf'), t('Continue to next step'));
+        $info = array(
+            'commerce_payment[payment_details][credit_card][owner]' => 'A Customer',
+            'commerce_payment[payment_details][credit_card][number]' => '4242424242424242',
+            'commerce_payment[payment_details][credit_card][exp_month]' => '05',
+            'commerce_payment[payment_details][credit_card][exp_year]' => '2013',
+            'commerce_payment[payment_details][credit_card][code]' => '111',
+        );
 
-        debug('cakeshow.test: about to charge');
-        
-        Stripe::setApiKey('asdf');
-        $created = Stripe_Charge::create(array(
-            'amount' => 2000,
-            'currency' => 'USD',
-            'card' => 'tok_fdsa'
-        ));
+        $this->drupalPost(NULL, $info, t('Continue to next step'), array(), array(), NULL, array('stripeToken' => 'asdf', 'op' => t('Continue to next step')));
 
         $charges = json_decode($this->_getMockData('/mock_stripe/mock/charges_made'));
         debug($charges, 'charges made');
