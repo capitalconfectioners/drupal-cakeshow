@@ -11,12 +11,14 @@ class MockStripe {
 
     public function add_charge($charge) {
         self::$charges[] = $charge;
+
         variable_set('mock_stripe_charges', self::$charges);
     }
 
-    public function print_charges() {
+    public function get_charges() {
         self::$charges = variable_get('mock_stripe_charges');
-        debug(self::$charges, 'all charges');
+
+        return self::$charges;
     }
 }
 
@@ -27,6 +29,13 @@ function mock_stripe_menu() {
 
     $routes['mock_stripe/v1/charges'] = array(
         'page callback' => 'mock_stripe_new_charge',
+        'access callback' => TRUE,
+        'delivery callback' => 'drupal_json_output',
+        'type' => MENU_CALLBACK
+    );
+
+    $routes['mock_stripe/mock/charges_made'] = array(
+        'page callback' => 'mock_stripe_charges_made',
         'access callback' => TRUE,
         'delivery callback' => 'drupal_json_output',
         'type' => MENU_CALLBACK
@@ -46,14 +55,8 @@ function mock_stripe_new_charge() {
         'card' => $card
     );
 
-    simpletest_verbose(
-        print_r($charge, TRUE) . ' new charge request'
-    );
-
     MockStripe::add_charge($charge);
 
-    debug(MockStripe::$charges, 'new all charges');
-    
     $result = array(
         "id" => "ch_1lT890FuPdj9xX",
         "object" => "charge",
@@ -101,6 +104,12 @@ function mock_stripe_new_charge() {
         "description" => "Order Number: 3",
         "dispute" => null
     );
+
+    return $result;
+}
+
+function mock_stripe_charges_made() {
+    $result = MockStripe::get_charges();
 
     return $result;
 }

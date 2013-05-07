@@ -10,12 +10,7 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     }
 
     public function setUp() {
-        module_load_include('module', 'mock_stripe');
-
         error_log('cakeshow.test: in setup');
-        // Force the menu cache to be cleared, so changes to the mock
-        // stripe module's routes are taken into account.
-        menu_cache_clear_all();
 
         global $base_url;
         require_once libraries_get_path('stripe-php') . '/lib/Stripe.php';
@@ -26,8 +21,6 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         $modules[] = 'cakeshow';
         $modules[] = 'mock_stripe';
         parent::setUp($modules);
-
-        menu_rebuild();
 
         $this->customer = $this->createStoreCustomer();
 
@@ -75,6 +68,20 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         $this->drupalPost(NULL, $info, t('Continue to next step'));
     }
 
+    private function _getMockData($url) {
+        global $base_url;
+
+        $fullUrl = $base_url . $url;
+
+        $ch = curl_init($fullUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
+    }
+
     public function testShowsSubmissionForm() {
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
@@ -82,8 +89,6 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     }
 
     public function testSubmitsPartialPaymentAndCreatesSubscription() {
-        module_load_include('module', 'mock_stripe');
-        
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
         //$this->drupalPost(NULL, array('stripeToken' => 'asdf'), t('Continue to next step'));
@@ -97,7 +102,8 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
             'card' => 'tok_fdsa'
         ));
 
-        MockStripe::print_charges();
+        $charges = json_decode($this->_getMockData('/mock_stripe/mock/charges_made'));
+        debug($charges, 'charges made');
         
         //$this->assertEqual(MockStripe::$charges[0]['amount'], 2000);
     }
