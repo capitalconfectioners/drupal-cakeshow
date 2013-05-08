@@ -18,6 +18,7 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         Stripe::$apiBase = $base_url . '/mock_stripe';
 
         $modules = parent::setUpHelper('all');
+        $modules[] = 'libraries';
         $modules[] = 'cakeshow';
         $modules[] = 'mock_stripe';
         parent::setUp($modules);
@@ -99,7 +100,7 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
             'commerce_payment[payment_details][credit_card][code]' => '111',
         );
 
-        $this->drupalPost(NULL, $info, t('Continue to next step'), array(), array(), NULL, array('stripeToken' => 'asdf', 'op' => t('Continue to next step')));
+        $this->drupalPost(NULL, $info, t('Continue to next step'), array(), array(), NULL, '&stripeToken=asdf');
 
         $charges = json_decode($this->_getMockData('/mock_stripe/mock/charges_made'));
         debug($charges, 'charges made');
