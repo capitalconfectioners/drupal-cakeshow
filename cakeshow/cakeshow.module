@@ -36,17 +36,44 @@ function cakeshow_commerce_payment_method_info_alter(&$payment_methods) {
 }
 
 function cakeshow_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
+    _load_stripe_path();
     module_load_include('module', 'commerce_stripe');
-    global $commerce_stripe_module;
+    $commerce_stripe_module = commerce_payment_method_instance_load('commerce_stripe|commerce_payment_commerce_stripe');
     
     return commerce_stripe_submit_form($commerce_stripe_module, $pane_values, $checkout_pane, $order);
 }
 
 function cakeshow_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
+    _load_stripe_path();
     debug('cakeshow_submit_form_submit');
     
     module_load_include('module', 'commerce_stripe');
-    global $commerce_stripe_module;
+    $commerce_stripe_module = commerce_payment_method_instance_load('commerce_stripe|commerce_payment_commerce_stripe');
 
+    debug(Stripe::$apiBase, 'loaded base url');
+
+    debug($commerce_stripe_module, 'stripe module');
     return commerce_stripe_submit_form_submit($commerce_stripe_module, $pane_form, $pane_values, $order, $charge);
+}
+
+function _load_stripe_path() {
+    module_load_include('module', 'commerce_stripe');
+    global $commerce_stripe_module;
+    require_once libraries_get_path('stripe-php') . '/lib/Stripe.php';
+
+    // This is just for Unit Testing purposes; outside of the Unit
+    // Test environment, the variable should not be set, so the built
+    // in value should be used.
+    $stripe_base_url = variable_get('stripe_base_url', Stripe::$apiBase);
+
+    Stripe::$apiBase = $stripe_base_url;
+
+    // Override for testing, if present; otherwise, let
+    // commerce_stripe use the value it's configured with.
+    $stripe_api_key = variable_get('stripe_api_key');
+    if( $stripe_api_key != NULL ) {
+        debug($stripe_api_key, 'setting api key');
+        debug($commerce_stripe_module, 'stripe module');
+        //$commerce_stripe_module['settings']['secret_key'] = $stripe_api_key;
+    }
 }

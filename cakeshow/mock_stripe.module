@@ -45,7 +45,7 @@ function mock_stripe_menu() {
 }
 
 function mock_stripe_new_charge() {
-    error_log('mock_stripe_new_charge');
+    debug('mock_stripe_new_charge');
 
     $amount = $_POST['amount'];
     $currency = $_POST['currency'];

@@ -12,16 +12,20 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     public function setUp() {
         error_log('cakeshow.test: in setup');
 
+        $modules = parent::setUpHelper('all');
+        $modules[] = 'libraries';
+        $modules[] = 'commerce_stripe';
+        $modules[] = 'cakeshow';
+        $modules[] = 'mock_stripe';
+        parent::setUp($modules);
+
         global $base_url;
         require_once libraries_get_path('stripe-php') . '/lib/Stripe.php';
 
         Stripe::$apiBase = $base_url . '/mock_stripe';
 
-        $modules = parent::setUpHelper('all');
-        $modules[] = 'libraries';
-        $modules[] = 'cakeshow';
-        $modules[] = 'mock_stripe';
-        parent::setUp($modules);
+        variable_set('stripe_base_url', Stripe::$apiBase);
+        variable_set('stripe_api_key', 'fakekey');
 
         $this->customer = $this->createStoreCustomer();
 
