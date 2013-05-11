@@ -25,7 +25,6 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         Stripe::$apiBase = $base_url . '/mock_stripe';
 
         variable_set('stripe_base_url', Stripe::$apiBase);
-        variable_set('stripe_api_key', 'fakekey');
 
         $this->store_admin = $this->createStoreAdmin();
         $this->customer = $this->createStoreCustomer();

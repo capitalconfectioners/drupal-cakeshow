@@ -50,9 +50,6 @@ function cakeshow_submit_form_submit($payment_method, $pane_form, $pane_values, 
     module_load_include('module', 'commerce_stripe');
     $commerce_stripe_module = commerce_payment_method_instance_load('commerce_stripe|commerce_payment_commerce_stripe');
 
-    debug(Stripe::$apiBase, 'loaded base url');
-
-    debug($commerce_stripe_module, 'stripe module');
     return commerce_stripe_submit_form_submit($commerce_stripe_module, $pane_form, $pane_values, $order, $charge);
 }
 
@@ -67,13 +64,4 @@ function _load_stripe_path() {
     $stripe_base_url = variable_get('stripe_base_url', Stripe::$apiBase);
 
     Stripe::$apiBase = $stripe_base_url;
-
-    // Override for testing, if present; otherwise, let
-    // commerce_stripe use the value it's configured with.
-    $stripe_api_key = variable_get('stripe_api_key');
-    if( $stripe_api_key != NULL ) {
-        debug($stripe_api_key, 'setting api key');
-        debug($commerce_stripe_module, 'stripe module');
-        //$commerce_stripe_module['settings']['secret_key'] = $stripe_api_key;
-    }
 }
