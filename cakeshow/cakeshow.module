@@ -1,8 +1,5 @@
 <?php
 
-# Not really sure of a safer way to do this in PHP
-$commerce_stripe_module;
-
 function cakeshow_help($path, $arg) {
     switch ($path) {
         case "admin/help#cakeshow":
@@ -27,14 +24,6 @@ function cakeshow_commerce_payment_method_info() {
     return $payment_methods;
 }
 
-function cakeshow_commerce_payment_method_info_alter(&$payment_methods) {
-    if (isset($payment_methods['commerce_stripe'])) {
-        global $commerce_stripe_module;
-
-        $commerce_stripe_module = $payment_methods['commerce_stripe'];
-    }
-}
-
 function cakeshow_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
     _load_stripe_path();
     module_load_include('module', 'commerce_stripe');
@@ -45,7 +34,6 @@ function cakeshow_submit_form($payment_method, $pane_values, $checkout_pane, $or
 
 function cakeshow_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
     _load_stripe_path();
-    debug('cakeshow_submit_form_submit');
     
     module_load_include('module', 'commerce_stripe');
     $commerce_stripe_module = commerce_payment_method_instance_load('commerce_stripe|commerce_payment_commerce_stripe');
