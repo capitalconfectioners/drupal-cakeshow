@@ -116,6 +116,8 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
     }
 
     public function testSubmitsPartialPaymentAndCreatesSubscription() {
+        variable_set('mock_time', '2013-11-05 5:00:00');
+        
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
 
         $info = array(
@@ -130,7 +132,7 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
 
         $charges = json_decode($this->_getMockData('/mock_stripe/mock/charges_made'));
         debug($charges, 'charges made');
-        
-        //$this->assertEqual(MockStripe::$charges[0]['amount'], 2000);
+
+        $this->assertEqual($charges[0]->amount, 2000);
     }
 }

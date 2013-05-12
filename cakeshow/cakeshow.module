@@ -34,6 +34,10 @@ function cakeshow_submit_form($payment_method, $pane_values, $checkout_pane, $or
 
 function cakeshow_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
     _load_stripe_path();
+
+    $now = _get_time();
+
+    debug($now, 'possibly mocked time');
     
     module_load_include('module', 'commerce_stripe');
     $commerce_stripe_module = commerce_payment_method_instance_load('commerce_stripe|commerce_payment_commerce_stripe');
@@ -52,4 +56,10 @@ function _load_stripe_path() {
     $stripe_base_url = variable_get('stripe_base_url', Stripe::$apiBase);
 
     Stripe::$apiBase = $stripe_base_url;
+}
+
+function _get_time() {
+    $time_value = variable_get('mock_time', 'now');
+
+    return new DateTime($time_value);
 }
