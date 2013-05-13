@@ -115,7 +115,7 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
         $this->assertFieldByName('commerce_payment[payment_details][credit_card][number]');
     }
 
-    public function testSubmitsPartialPaymentAndCreatesSubscription() {
+    public function testDoesntCreatePaymentAndCreatesSubscription() {
         variable_set('mock_time', '2013-11-05 5:00:00');
         
         $this->createOrderAndGoToPayment(array($this->product1->product_id => 1));
@@ -130,9 +130,10 @@ class TestSubscriptionCheckouts extends CommerceBaseTestCase {
 
         $this->drupalPost(NULL, $info, t('Continue to next step'), array(), array(), NULL, '&stripeToken=asdf');
 
-        $charges = json_decode($this->_getMockData('/mock_stripe/mock/charges_made'));
-        debug($charges, 'charges made');
+        $charges = json_decode($this->_getMockData('/mock_stripe/mock/resources'));
 
-        $this->assertEqual($charges[0]->amount, 2000);
+        debug($charges, 'resources');
+
+        $this->assertEqual(count($charges), 0, 'No immediate charges were created');
     }
 }

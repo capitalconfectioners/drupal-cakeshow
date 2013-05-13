@@ -7,18 +7,27 @@
 require_once drupal_get_path('module', 'simpletest') . '/drupal_web_test_case.php';
 
 class MockStripe {
-    public static $charges = array();
+    public static $resources = array(
+        'charges' => array(),
+        'customers' => array(),
+        'subscriptions' => array()
+    );
 
-    public function add_charge($charge) {
-        self::$charges[] = $charge;
+    public function add_resource($name, $value) {
+        if( !isset(self::$resources[$name]) ) {
+            self::$resources[$name] = array();
+        }
 
-        variable_set('mock_stripe_charges', self::$charges);
+        self::$resources[$name][] = $value;
+
+        variable_set('mock_stripe_resources', self::$resources);
     }
 
-    public function get_charges() {
-        self::$charges = variable_get('mock_stripe_charges');
+    public function get_resources() {
+        debug( self::$resources, 'initialized resources');
+        self::$resources = variable_get('mock_stripe_resources', self::$resources);
 
-        return self::$charges;
+        return self::$resources;
     }
 }
 
@@ -34,8 +43,22 @@ function mock_stripe_menu() {
         'type' => MENU_CALLBACK
     );
 
-    $routes['mock_stripe/mock/charges_made'] = array(
-        'page callback' => 'mock_stripe_charges_made',
+    $routes['mock_stripe/v1/plans'] = array(
+        'page callback' => 'mock_stripe_new_plan',
+        'access callback' => TRUE,
+        'delivery callback' => 'drupal_json_output',
+        'type' => MENU_CALLBACK
+    );
+
+    $routes['mock_stripe/v1/customers'] = array(
+        'page callback' => 'mock_sripe_customers',
+        'access callback' => TRUE,
+        'delivery callback' => 'drupal_json_output',
+        'type' => MENU_CALLBACK
+    );
+
+    $routes['mock_stripe/mock/resources'] = array(
+        'page callback' => 'mock_stripe_resources',
         'access callback' => TRUE,
         'delivery callback' => 'drupal_json_output',
         'type' => MENU_CALLBACK
@@ -57,7 +80,7 @@ function mock_stripe_new_charge() {
         'card' => $card
     );
 
-    MockStripe::add_charge($charge);
+    MockStripe::add_resource('charges', $charge);
 
     $result = array(
         "id" => "ch_1lT890FuPdj9xX",
@@ -110,8 +133,64 @@ function mock_stripe_new_charge() {
     return $result;
 }
 
-function mock_stripe_charges_made() {
-    $result = MockStripe::get_charges();
+function mock_stripe_new_plan() {
+    $new_plan = array(
+        'id' => $POST['id'],
+        'amount' => $POST['amount'],
+        'currency' => $POST['currency'],
+        'interval' => $POST['interval'],
+        'name' => $POST['name']
+    );
+    
+    MockStripe::add_resource('plans', $new_plan);
+
+    return array_merge($new_plan, array(
+        'object' => 'plan',
+        'livemode' => false,
+        'interval_count' => 1,
+        'trial_period_days' => null
+    ));
+}
+
+function mock_stripe_customers($customerId, $subresource) {
+    if( $customerId != null && $subresource == 'subscription' ) {
+        return mock_stripe_new_subscription($customerId);
+    }
+    else {
+        return mock_stripe_new_customer();
+    }
+}
+
+function mock_stripe_new_customer() {
+    $new_customer = array(
+        'card' => $POST['card'],
+        'description' => $POST['description'],
+        'email' => $POST['email']
+    );
+    
+    MockStripe::add_resource('customers', $new_customer);
+
+    return array(
+        'object' => 'customer',
+        'livemode' => false,
+        'id' => 'cus_6789',
+        'created' => 1343600622,
+        'description' => $new_customer['description'],
+        'active_card' => $new_customer['card'],
+        'email' => $new_customer['email'],
+        'delinquent' => false,
+        'subscription' => null,
+        'discount' => null,
+        'account_balance' => 0
+    );
+}
+
+function mock_stripe_new_subscription($customerId) {
+
+}
+
+function mock_stripe_resources() {
+    $result = MockStripe::get_resources();
 
     return $result;
 }

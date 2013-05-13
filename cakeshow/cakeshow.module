@@ -33,16 +33,22 @@ function cakeshow_submit_form($payment_method, $pane_values, $checkout_pane, $or
 }
 
 function cakeshow_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
+    require_once libraries_get_path('stripe-php') . '/lib/Stripe.php';
     _load_stripe_path();
 
-    $now = _get_time();
-
-    debug($now, 'possibly mocked time');
-    
     module_load_include('module', 'commerce_stripe');
     $commerce_stripe_module = commerce_payment_method_instance_load('commerce_stripe|commerce_payment_commerce_stripe');
 
-    return commerce_stripe_submit_form_submit($commerce_stripe_module, $pane_form, $pane_values, $order, $charge);
+    Stripe::setApiKey($commerce_stripe_module['settings']['secret_key']);
+
+    $show_date = _get_show_date();
+    $now = _get_time();
+
+    $remaining = $now->diff($show_date);
+
+    $monthly_amount = $charge['amount'] / ($remaining->m + 1);
+
+    
 }
 
 function _load_stripe_path() {
@@ -56,6 +62,10 @@ function _load_stripe_path() {
     $stripe_base_url = variable_get('stripe_base_url', Stripe::$apiBase);
 
     Stripe::$apiBase = $stripe_base_url;
+}
+
+function _get_show_date() {
+    return new DateTime('2014-02-14');
 }
 
 function _get_time() {
